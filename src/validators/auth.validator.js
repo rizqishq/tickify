@@ -1,21 +1,38 @@
-import { z } from "zod";
+export const validateRegister = (data) => {
+    if (!data.full_name || data.full_name.length < 3) {
+        throw new Error("Full name must be at least 3 characters");
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!data.email || !emailRegex.test(data.email)) {
+        throw new Error("Invalid email address");
+    }
+    if (data.phone_number && data.phone_number.length < 8) {
+        throw new Error("Phone number too short");
+    }
+    if (!data.password || data.password.length < 6) {
+        throw new Error("Password must be at least 6 characters");
+    }
+    if (data.password !== data.confirm_password) {
+        throw new Error("Passwords do not match");
+    }
+    return data;
+};
 
-export const registerSchema = z.object({
-    full_name: z.string().min(3, "Full name must be at least 3 characters"),
-    email: z.string().email("Invalid email"),
-    phone_number: z.string().min(8, "Phone number too short").optional(),
-    password: z.string().min(6, "Password must be at least 6 characters"),
-    confirm_password: z.string().min(6),
-}).refine((data) => data.password === data.confirm_password, {
-    message: "Passwords do not match",
-    path: ["confirm_password"],
-});
+export const validateLogin = (data) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export const loginSchema = z.object({
-    email: z.string().email().optional(),
-    phone_number: z.string().optional(),
-    password: z.string().min(1, "Password is required"),
-}).refine((data) => data.email || data.phone_number, {
-    message: "Email or Phone number is required",
-    path: ["email"],
-});
+    // Check if at least one identifier is provided
+    if (!data.email && !data.phone_number) {
+        throw new Error("Email or Phone number is required");
+    }
+
+    if (data.email && !emailRegex.test(data.email)) {
+        throw new Error("Invalid email format");
+    }
+
+    if (!data.password || data.password.length < 1) {
+        throw new Error("Password is required");
+    }
+
+    return data;
+};

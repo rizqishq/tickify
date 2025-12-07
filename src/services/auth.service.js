@@ -4,13 +4,17 @@ import { StatusCodes } from "http-status-codes";
 
 export class AuthService {
     static async register(data) {
-        const password_hash = await hashPassword(data.password);
+        const { full_name, email, phone_number, password } = data;
 
-        // Create User
+        const password_hash = await hashPassword(password);
+
         try {
             const user = await UserRepository.create({
-                ...data,
-                password_hash
+                full_name,
+                email,
+                phone_number,
+                password_hash,
+                role: "user" 
             });
 
             // Sign Token

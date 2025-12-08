@@ -99,3 +99,57 @@ curl -X POST http://localhost:3000/api/auth/login \
 	"token": "jwt_token_here"
 }
 ```
+### User Endpoints
+
+#### 1. Get Current User Profile
+Retrieves the profile of the currently logged-in user.
+
+```bash
+curl -X GET http://localhost:3000/api/users/me \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+#### 2. Update Profile Picture
+Uploads a new profile picture. Expects a file field named `file`.
+
+```bash
+curl -X PATCH http://localhost:3000/api/users/profile-picture \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: multipart/form-data" \
+  -F "file=@/path/to/image.jpg"
+```
+
+#### 3. Remove Profile Picture
+Deletes the current user's profile picture.
+
+```bash
+curl -X DELETE http://localhost:3000/api/users/profile-picture \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+#### 4. Update Profile Details
+Updates user information like name or phone number.
+
+```bash
+curl -X PATCH http://localhost:3000/api/users/profile \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "full_name": "New Name",
+    "phone_number": "0987654321"
+  }'
+```
+
+#### 5. Change Password
+Updates the user's password.
+
+```bash
+curl -X PATCH http://localhost:3000/api/users/change-password \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "old_password": "oldPassword123",
+    "new_password": "newPassword123",
+    "confirm_new_password": "newPassword123"
+  }'
+```

@@ -14,7 +14,7 @@ export class AuthService {
                 email,
                 phone_number,
                 password_hash,
-                role: "user" 
+                role: "user"
             });
 
             // Sign Token

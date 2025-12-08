@@ -6,6 +6,7 @@ dotenv.config();
 import authRoutes from "./src/routes/auth.routes.js";
 import userRoutes from "./src/routes/user.routes.js";
 import eventRoutes from "./src/routes/event.routes.js";
+import ticketRoutes from "./src/routes/ticket.routes.js";
 
 import helmet from "helmet";
 import morgan from "morgan";
@@ -24,6 +25,7 @@ app.use(cors({
 // Public Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/events", eventRoutes);
+app.use("/api/tickets", ticketRoutes);
 app.use("/api/users", userRoutes);
 
 app.get("/api/health", (req, res) => res.json({ ok: true, message: "Ticketing backend" }));

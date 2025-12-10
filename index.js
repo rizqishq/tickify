@@ -17,7 +17,10 @@ app.use(helmet());
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(cors({
-    origin: 'https://tickify-app.vercel.app',
+    origin: [
+        'https://tickify-app.vercel.app',
+        'http://localhost:3000'
+    ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
 }));
@@ -30,7 +33,7 @@ app.use("/api/users", userRoutes);
 
 app.get("/api/health", (req, res) => res.json({ ok: true, message: "Ticketing backend" }));
 
-const PORT = process.env.PORT || 5000;
+const PORT = 5000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });

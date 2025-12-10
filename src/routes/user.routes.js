@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { auth } from "../middlewares/auth.js";
-import { uploadProfilePicture, removeProfilePicture, updateProfile, getMe, listUsers, changePassword } from "../controllers/user.controller.js";
+import { uploadProfilePicture, removeProfilePicture, updateProfile, getMe, changePassword } from "../controllers/user.controller.js";
 import { upload } from "../middlewares/upload.middleware.js";
 
 const r = Router();

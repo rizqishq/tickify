@@ -6,9 +6,9 @@ export class EventService {
         return EventRepository.create(data);
     }
 
-    static async listEvents({ category, page = 1, limit = 6 }) {
+    static async listEvents({ category, page = 1, limit = 6, orderBy, orderDir }) {
         const offset = (page - 1) * limit;
-        return EventRepository.findAll({ category, limit, offset });
+        return EventRepository.findAll({ category, limit, offset, orderBy, orderDir });
     }
 
     static async getEvent(id) {

@@ -14,6 +14,7 @@ export const validate = (validatorFn, source = "body") => (req, res, next) => {
     } catch (error) {
         return res.status(StatusCodes.BAD_REQUEST).json({
             success: false,
+            message: error.message,
             error: "Validation Error",
             details: error.message,
         });

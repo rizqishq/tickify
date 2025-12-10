@@ -12,6 +12,8 @@ import userRoutes from "./src/routes/user.routes.js";
 import helmet from "helmet";
 import morgan from "morgan";
 
+import { errorHandler } from "./src/middlewares/error.middleware.js";
+
 const app = express();
 
 app.use(helmet());
@@ -33,6 +35,8 @@ app.use("/api/events", eventRoutes);
 app.use("/api/tickets", ticketRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/users", userRoutes);
+
+app.use(errorHandler);
 
 app.get("/api/health", (req, res) => res.json({ ok: true, message: "Ticketing backend" }));
 

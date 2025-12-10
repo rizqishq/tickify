@@ -2,7 +2,7 @@ import { pool } from "../config/db.js";
 import { OrderRepository } from "../repositories/order.repository.js";
 import { TicketCategoryRepository } from "../repositories/ticket_category.repository.js";
 import { TicketRepository } from "../repositories/ticket.repository.js";
-import { generateTicketCode } from "../utils/qr.js";
+import { generateTicketCode, generateQrDataUri } from "../utils/qr.js";
 import { StatusCodes } from "http-status-codes";
 
 export class OrderService {

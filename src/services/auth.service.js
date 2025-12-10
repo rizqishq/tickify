@@ -30,12 +30,10 @@ export class AuthService {
         }
     }
 
-    static async login({ email, phone_number, password }) {
+    static async login({ email, password }) {
         let user;
         if (email) {
             user = await UserRepository.findByEmail(email);
-        } else if (phone_number) {
-            user = await UserRepository.findByPhone(phone_number);
         }
 
         if (!user) {

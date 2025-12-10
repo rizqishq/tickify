@@ -4,9 +4,10 @@ import cors from "cors";
 dotenv.config();
 
 import authRoutes from "./src/routes/auth.routes.js";
-import userRoutes from "./src/routes/user.routes.js";
 import eventRoutes from "./src/routes/event.routes.js";
 import ticketRoutes from "./src/routes/ticket.routes.js";
+import orderRoutes from "./src/routes/order.routes.js";
+import userRoutes from "./src/routes/user.routes.js";
 
 import helmet from "helmet";
 import morgan from "morgan";
@@ -19,7 +20,8 @@ app.use(express.json());
 app.use(cors({
     origin: [
         'https://tickify-app.vercel.app',
-        'http://localhost:3000'
+        'http://localhost:3000',
+        'http://localhost:5173'
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
@@ -29,6 +31,7 @@ app.use(cors({
 app.use("/api/auth", authRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/tickets", ticketRoutes);
+app.use("/api/orders", orderRoutes);
 app.use("/api/users", userRoutes);
 
 app.get("/api/health", (req, res) => res.json({ ok: true, message: "Ticketing backend" }));

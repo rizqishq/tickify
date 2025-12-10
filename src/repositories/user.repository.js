@@ -47,7 +47,6 @@ export class UserRepository {
     }
 
     static async updateProfile(id, { full_name, email, phone_number }) {
-        // Dynamic update could be better, but fixed columns is simpler for now
         const sql = `
             UPDATE users 
             SET full_name = COALESCE($1, full_name), 

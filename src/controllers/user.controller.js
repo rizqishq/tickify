@@ -3,7 +3,7 @@ import { asyncWrapper } from "../utils/asyncWrapper.js";
 import { StatusCodes } from "http-status-codes";
 
 export const uploadProfilePicture = asyncWrapper(async (req, res) => {
-    console.log("Upload Request File:", req.file); // DEBUG LOG
+    console.log("Upload Request File:", req.file); 
     const result = await UserService.updateProfilePicture(req.user.id, req.file);
     res.status(StatusCodes.OK).json(result);
 });

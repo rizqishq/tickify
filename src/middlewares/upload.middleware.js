@@ -22,7 +22,6 @@ const storage = new CloudinaryStorage({
     params: {
         folder: 'tickify',
         allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
-        // transformation: [{ width: 500, height: 500, crop: 'limit' }], // Optional
     },
 });
 

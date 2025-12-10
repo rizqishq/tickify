@@ -21,8 +21,7 @@ export const validateRegister = (data) => {
 export const validateLogin = (data) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    // Check if at least one identifier is provided
-    if (!data.email && !data.phone_number) {
+    if (!data.email) {
         throw new Error("Email or Phone number is required");
     }
 

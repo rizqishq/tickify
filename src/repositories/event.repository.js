@@ -12,14 +12,22 @@ export class EventRepository {
         return rows[0];
     }
 
-    static async findAll({ orderBy = 'start_time', orderDir = 'ASC' } = {}) {
-        const sql = `
+    static async findAll({ orderBy = 'start_time', orderDir = 'ASC', category } = {}) {
+        let sql = `
             SELECT e.*, u.full_name as organizer_name 
             FROM events e 
             LEFT JOIN users u ON e.organizer_id = u.id 
-            ORDER BY e.${orderBy} ${orderDir}
         `;
-        const { rows } = await pool.query(sql);
+
+        const params = [];
+        if (category) {
+            sql += ` WHERE e.category = $1`;
+            params.push(category);
+        }
+
+        sql += ` ORDER BY e.${orderBy} ${orderDir}`;
+
+        const { rows } = await pool.query(sql, params);
         return rows;
     }
 

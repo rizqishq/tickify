@@ -53,7 +53,6 @@ export class AuthService {
 
         const token = signJwt({ id: user.id, email: user.email, role: user.role });
 
-        // Return clear user object (remove sensitive data like hash)
         const userView = {
             id: user.id,
             full_name: user.full_name,

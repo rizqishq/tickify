@@ -16,7 +16,6 @@ export class TicketService {
         return ticket;
     }
 
-    // Admin Methods
     static async createCategory(data) {
         return TicketCategoryRepository.create(data);
     }

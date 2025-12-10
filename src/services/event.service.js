@@ -21,13 +21,11 @@ export class EventService {
     }
 
     static async updateEvent(id, data) {
-        // Ensure exists first
         await this.getEvent(id);
         return EventRepository.update(id, data);
     }
 
     static async deleteEvent(id) {
-        // Ensure exists first
         await this.getEvent(id);
         return EventRepository.delete(id);
     }

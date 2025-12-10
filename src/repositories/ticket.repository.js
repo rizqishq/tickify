@@ -39,10 +39,6 @@ export class TicketRepository {
     }
 
     static async findByEventId(eventId) {
-        // This might be fetching all tickets for an event (admin?) or ticket types?
-        // The original controller 'listTicketsByEvent' actually listed Ticket Categories (types), NOT individual sold tickets.
-        // Let's verify that.
-        // Public controller listTicketsByEvent usually shows available tickets to buy.
         return [];
     }
 };

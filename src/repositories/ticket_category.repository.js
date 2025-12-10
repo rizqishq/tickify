@@ -25,9 +25,15 @@ export class TicketCategoryRepository {
         return rows;
     }
 
-    static async update(id, { name, price, quota }) {
-        const sql = `UPDATE ticket_categories SET name=$1, price=$2, quota=$3, updated_at=now() WHERE id=$4 RETURNING *`;
-        const { rows } = await pool.query(sql, [name, price, quota, id]);
+    static async update(id, data) {
+        const keys = Object.keys(data).filter(k => ['name', 'price', 'quota'].includes(k));
+        if (keys.length === 0) return null;
+
+        const setClause = keys.map((key, index) => `${key} = $${index + 1}`).join(', ');
+        const values = keys.map(key => data[key]);
+
+        const sql = `UPDATE ticket_categories SET ${setClause}, updated_at=now() WHERE id=$${keys.length + 1} RETURNING *`;
+        const { rows } = await pool.query(sql, [...values, id]);
         return rows[0];
     }
 

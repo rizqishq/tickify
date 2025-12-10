@@ -73,14 +73,23 @@ export class EventRepository {
     }
 
     static async update(id, data) {
-        const { title, description, location, venue, start_time, end_time, banner_url, category } = data;
+        const keys = Object.keys(data).filter(k =>
+            ['title', 'description', 'location', 'venue', 'start_time', 'end_time', 'banner_url', 'category'].includes(k)
+        );
+
+        if (keys.length === 0) return null;
+
+        const setClause = keys.map((key, index) => `${key} = $${index + 1}`).join(', ');
+        const values = keys.map(key => data[key]);
+
         const sql = `
             UPDATE events 
-            SET title=$1, description=$2, location=$3, venue=$4, start_time=$5, end_time=$6, banner_url=$7, category=$8, updated_at=now()
-            WHERE id=$9 
+            SET ${setClause}, updated_at = now()
+            WHERE id = $${keys.length + 1}
             RETURNING *
         `;
-        const { rows } = await pool.query(sql, [title, description, location, venue, start_time, end_time, banner_url, category, id]);
+
+        const { rows } = await pool.query(sql, [...values, id]);
         return rows[0];
     }
 

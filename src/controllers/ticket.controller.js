@@ -7,8 +7,13 @@ export const listTicketsByEvent = asyncWrapper(async (req, res) => {
 });
 
 export const myTickets = asyncWrapper(async (req, res) => {
-    const tickets = await TicketService.getUserTickets(req.user.id);
-    res.json(tickets);
+    const { page, limit } = req.query;
+    const result = await TicketService.getUserTickets(
+        req.user.id,
+        page ? parseInt(page) : 1,
+        limit ? parseInt(limit) : 6
+    );
+    res.json(result);
 });
 
 export const getTicket = asyncWrapper(async (req, res) => {

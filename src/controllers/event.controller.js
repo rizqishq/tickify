@@ -2,11 +2,13 @@ import { EventService } from "../services/event.service.js";
 import { asyncWrapper } from "../utils/asyncWrapper.js";
 
 export const listEvents = asyncWrapper(async (req, res) => {
-    const { category } = req.query;
+    const { category, page, limit } = req.query;
     const events = await EventService.listEvents({
         orderBy: 'start_time',
         orderDir: 'ASC',
-        category
+        category,
+        page: page ? parseInt(page) : 1,
+        limit: limit ? parseInt(limit) : 6
     });
     res.json(events);
 });

@@ -12,7 +12,7 @@ export class EventRepository {
         return rows[0];
     }
 
-    static async findAll({ orderBy = 'start_time', orderDir = 'ASC', category } = {}) {
+    static async findAll({ orderBy = 'start_time', orderDir = 'ASC', category, limit, offset } = {}) {
         let sql = `
             SELECT e.*, u.full_name as organizer_name 
             FROM events e 
@@ -20,15 +20,45 @@ export class EventRepository {
         `;
 
         const params = [];
+        let paramIndex = 1;
+
         if (category) {
-            sql += ` WHERE e.category = $1`;
+            sql += ` WHERE e.category = $${paramIndex}`;
             params.push(category);
+            paramIndex++;
         }
 
+        // Count total query
+        const countSql = `SELECT COUNT(*) as total FROM events e ${category ? `WHERE e.category = $1` : ''}`;
+        const countParams = category ? [category] : [];
+        const { rows: countRows } = await pool.query(countSql, countParams);
+        const total = parseInt(countRows[0].total);
+
+        // Data query
         sql += ` ORDER BY e.${orderBy} ${orderDir}`;
 
+        if (limit) {
+            sql += ` LIMIT $${paramIndex}`;
+            params.push(limit);
+            paramIndex++;
+        }
+
+        if (offset) {
+            sql += ` OFFSET $${paramIndex}`;
+            params.push(offset);
+        }
+
         const { rows } = await pool.query(sql, params);
-        return rows;
+
+        return {
+            data: rows,
+            pagination: {
+                total,
+                page: limit ? Math.floor(offset / limit) + 1 : 1,
+                limit: limit || total,
+                totalPages: limit ? Math.ceil(total / limit) : 1
+            }
+        };
     }
 
     static async findById(id) {

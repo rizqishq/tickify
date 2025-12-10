@@ -7,12 +7,19 @@ export class TicketService {
         return TicketCategoryRepository.findByEventId(eventId);
     }
 
-    static async getUserTickets(userId) {
-        const tickets = await TicketRepository.findByUserId(userId);
-        return await Promise.all(tickets.map(async (t) => ({
+    static async getUserTickets(userId, page = 1, limit = 6) {
+        const offset = (page - 1) * limit;
+        const result = await TicketRepository.findByUserId(userId, limit, offset);
+
+        const ticketsWithQr = await Promise.all(result.data.map(async (t) => ({
             ...t,
             qr_code: await generateQrDataUri(t.ticket_code)
         })));
+
+        return {
+            data: ticketsWithQr,
+            pagination: result.pagination
+        };
     }
 
     static async getTicketById(id) {

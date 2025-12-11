@@ -92,8 +92,10 @@ export class OrderService {
         }
     }
 
-    static async getUserOrders(userId, status) {
-        const orders = await OrderRepository.findByUserId(userId, status);
+    static async getUserOrders(userId, status, page = 1, limit = 10) {
+        const offset = (page - 1) * limit;
+        const orders = await OrderRepository.findByUserId(userId, status, limit, offset);
+        const total = await OrderRepository.countByUserId(userId, status);
 
         const updates = orders.map(async (order) => {
             if (order.status === 'pending') {
@@ -102,6 +104,9 @@ export class OrderService {
                     if (invoice && (invoice.status === 'PAID' || invoice.status === 'SETTLED')) {
                         await OrderRepository.updateStatus(order.id, 'paid');
                         order.status = 'paid';
+                    } else if (invoice && invoice.status === 'EXPIRED') {
+                        await OrderRepository.updateStatus(order.id, 'cancelled');
+                        order.status = 'cancelled';
                     }
                 } catch (e) {
                     console.error(`Failed to sync order ${order.id}`, e);
@@ -111,7 +116,15 @@ export class OrderService {
 
         await Promise.all(updates);
 
-        return orders;
+        return {
+            data: orders,
+            pagination: {
+                total,
+                page: parseInt(page),
+                limit: parseInt(limit),
+                totalPages: Math.ceil(total / limit)
+            }
+        };
     }
 
     static async payOrder(orderId, userId) {
@@ -181,5 +194,49 @@ export class OrderService {
         }
 
         return order;
+    }
+
+    static async cancelOrder(orderId, userId) {
+        const order = await OrderRepository.findById(orderId);
+        if (!order) {
+            const error = new Error("Order not found");
+            error.statusCode = StatusCodes.NOT_FOUND;
+            throw error;
+        }
+
+        if (order.user_id !== userId) {
+            const error = new Error("Unauthorized access to order");
+            error.statusCode = StatusCodes.FORBIDDEN;
+            throw error;
+        }
+
+        if (order.status !== 'pending') {
+            const error = new Error("Only pending orders can be cancelled");
+            error.statusCode = StatusCodes.BAD_REQUEST;
+            throw error;
+        }
+
+        const client = await pool.connect();
+        try {
+            await client.query("BEGIN");
+
+            // Restore Quota
+            for (const item of order.items) {
+                // To increase quota, pass negative quantity to updateQuota logic which does "quota - qty"
+                // So: quota - (-quantity) = quota + quantity
+                await TicketCategoryRepository.updateQuota(item.category_id, -item.quantity, client);
+            }
+
+            // Update Status
+            const cancelledOrder = await OrderRepository.updateStatus(orderId, 'cancelled', client);
+
+            await client.query("COMMIT");
+            return cancelledOrder;
+        } catch (error) {
+            await client.query("ROLLBACK");
+            throw error;
+        } finally {
+            client.release();
+        }
     }
 }

@@ -8,8 +8,10 @@ export const createOrder = asyncWrapper(async (req, res) => {
 });
 
 export const ordersHistory = asyncWrapper(async (req, res) => {
-    const orders = await OrderService.getUserOrders(req.user.id, req.query.status);
-    res.json(orders);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const result = await OrderService.getUserOrders(req.user.id, req.query.status, page, limit);
+    res.json(result);
 });
 
 export const payOrder = asyncWrapper(async (req, res) => {
@@ -20,4 +22,9 @@ export const payOrder = asyncWrapper(async (req, res) => {
 export const getOrder = asyncWrapper(async (req, res) => {
     const order = await OrderService.getOrder(req.params.id, req.user.id);
     res.json(order);
+});
+
+export const cancelOrder = asyncWrapper(async (req, res) => {
+    const result = await OrderService.cancelOrder(req.params.id, req.user.id);
+    res.json(result);
 });

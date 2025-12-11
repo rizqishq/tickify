@@ -17,18 +17,27 @@ export const handleXenditWebhook = asyncWrapper(async (req, res) => {
 
     if (status === 'PAID' || status === 'SETTLED') {
         const orderId = external_id; // mapped correctly
+
+        // Idempotency Check: Check if already paid
+        const existingOrder = await OrderRepository.findById(orderId);
+        if (!existingOrder) {
+            console.error(`Order ${orderId} not found for webhook`);
+            return res.status(StatusCodes.NOT_FOUND).json({ message: "Order not found" });
+        }
+
+        if (existingOrder.status === 'paid' || existingOrder.status === 'cancelled') {
+            console.log(`Order ${orderId} is already ${existingOrder.status}. Ignoring webhook.`);
+            return res.json({ received: true, message: "Already processed" });
+        }
+
         try {
             const updatedOrder = await OrderRepository.updateStatus(orderId, 'paid');
             console.log(`Order ${orderId} marked as PAID`);
 
             // Get full order details for email
-            const fullOrder = await OrderRepository.findById(orderId);
-            // Ideally we get email from User Service or Order if stored.
-            // For now, let's hardcode or fetch user email.
-            // Assuming we don't have user email easily accessible without fetching User.
-            // Let's just send to a placeholder or try to fetch user.
-            // TODO: Fetch real user email.
-            await EmailService.sendTicketEmail(fullOrder, "customer@example.com");
+            // Reuse existingOrder since we have it, but better refetch or just use it?
+            // existingOrder has items.
+            await EmailService.sendTicketEmail(existingOrder).catch(e => console.error("Failed to send email", e));
 
         } catch (error) {
             console.error(`Failed to update order ${orderId}:`, error);

@@ -1,6 +1,8 @@
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
+import swaggerUi from 'swagger-ui-express';
+import { specs } from './src/config/swagger.js';
 dotenv.config();
 
 import authRoutes from "./src/routes/auth.routes.js";
@@ -52,6 +54,9 @@ initCron();
 app.use(errorHandler);
 
 app.get("/api/health", (req, res) => res.json({ ok: true, message: "Ticketing backend" }));
+
+// Swagger Docs
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 const PORT = 5000;
 app.listen(PORT, () => {

@@ -34,9 +34,6 @@ export const handleXenditWebhook = asyncWrapper(async (req, res) => {
             const updatedOrder = await OrderRepository.updateStatus(orderId, 'paid');
             console.log(`Order ${orderId} marked as PAID`);
 
-            // Get full order details for email
-            // Reuse existingOrder since we have it, but better refetch or just use it?
-            // existingOrder has items.
             await EmailService.sendTicketEmail(existingOrder).catch(e => console.error("Failed to send email", e));
 
         } catch (error) {

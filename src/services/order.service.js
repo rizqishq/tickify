@@ -106,12 +106,6 @@ export class OrderService {
                         await OrderRepository.updateStatus(order.id, 'paid');
                         order.status = 'paid';
 
-                        // Send Email
-                        // We need full order details (with items) for email. 
-                        // The current 'order' object from 'findByUserId' has items as JSON, which fits EmailService expectation roughly,
-                        // but let's double check. 'findByUserId' returns items as array of objects.
-                        // OrderRepository.findById returns similar structure.
-                        // EmailService uses order.items directly.
                         await EmailService.sendTicketEmail(order).catch(e => console.error("Failed to send email", e));
 
                     } else if (invoice && invoice.status === 'EXPIRED') {
@@ -157,8 +151,8 @@ export class OrderService {
 
         const user = await UserRepository.findById(userId);
 
-        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-        const successRedirectUrl = `${frontendUrl}/my-tickets`; // Redirect to tickets after payment
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+        const successRedirectUrl = `${frontendUrl}/my-tickets`;
         const failureRedirectUrl = `${frontendUrl}/orders/${order.id}`;
 
         const invoice = await PaymentService.createInvoice(
@@ -187,18 +181,13 @@ export class OrderService {
             throw error;
         }
 
-        // Lazy Sync: If pending, check Xendit
         if (order.status === 'pending') {
             try {
                 const invoice = await PaymentService.getInvoice(orderId);
                 if (invoice && (invoice.status === 'PAID' || invoice.status === 'SETTLED')) {
-                    // Update DB
                     await OrderRepository.updateStatus(orderId, 'paid');
-                    // Update local object
                     order.status = 'paid';
 
-                    // Send Email
-                    // 'getOrder' uses 'findById' which returns full object with items.
                     await EmailService.sendTicketEmail(order).catch(e => console.error("Failed to send email", e));
                 }
             } catch (err) {
@@ -236,8 +225,6 @@ export class OrderService {
 
             // Restore Quota
             for (const item of order.items) {
-                // To increase quota, pass negative quantity to updateQuota logic which does "quota - qty"
-                // So: quota - (-quantity) = quota + quantity
                 await TicketCategoryRepository.updateQuota(item.category_id, -item.quantity, client);
             }
 
@@ -267,17 +254,14 @@ export class OrderService {
             if (!order) throw new Error("Order not found");
             if (order.status !== 'pending') throw new Error("Only pending orders can be cancelled");
 
-            // Restore Quota
             for (const item of order.items) {
                 await TicketCategoryRepository.updateQuota(item.category_id, -item.quantity, client);
             }
 
-            // Update Status
             const updatedOrder = await OrderRepository.updateStatus(orderId, 'cancelled', client);
 
             await client.query('COMMIT');
 
-            // Send Email (async, don't block)
             EmailService.sendCancellationEmail(order).catch(e => console.error("Failed to send cancel email", e));
 
             return updatedOrder;

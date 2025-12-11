@@ -23,9 +23,7 @@ import { errorHandler } from "./src/middlewares/error.middleware.js";
 
 const app = express();
 
-app.use(helmet({
-    contentSecurityPolicy: false
-}));
+app.use(helmet());
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(cors({

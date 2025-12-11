@@ -64,4 +64,31 @@ export class UserRepository {
         const sql = `UPDATE users SET password_hash = $1, updated_at = now() WHERE id = $2`;
         await pool.query(sql, [passwordHash, id]);
     }
+
+    static async update(id, data) {
+        const keys = Object.keys(data).filter(k =>
+            ['full_name', 'email', 'phone_number', 'password_hash', 'role'].includes(k)
+        );
+
+        if (keys.length === 0) return null;
+
+        const setClause = keys.map((key, index) => `${key} = $${index + 1}`).join(', ');
+        const values = keys.map(key => data[key]);
+
+        const sql = `
+            UPDATE users 
+            SET ${setClause}, updated_at = now() 
+            WHERE id = $${keys.length + 1}
+            RETURNING id, full_name, email, phone_number, role, created_at, profile_picture_url
+        `;
+
+        const { rows } = await pool.query(sql, [...values, id]);
+        return rows[0];
+    }
+
+    static async delete(id) {
+        const sql = `DELETE FROM users WHERE id = $1 RETURNING id`;
+        const { rows } = await pool.query(sql, [id]);
+        return rows[0];
+    }
 }

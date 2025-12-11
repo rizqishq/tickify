@@ -23,7 +23,9 @@ import { errorHandler } from "./src/middlewares/error.middleware.js";
 
 const app = express();
 
-app.use(helmet());
+app.use(helmet({
+    contentSecurityPolicy: false
+}));
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(cors({
@@ -55,7 +57,6 @@ app.use(errorHandler);
 
 app.get("/api/health", (req, res) => res.json({ ok: true, message: "Ticketing backend" }));
 
-// Swagger Docs
 const swaggerOptions = {
     customCssUrl: 'https://unpkg.com/swagger-ui-dist@5.11.0/swagger-ui.css',
     customJs: [

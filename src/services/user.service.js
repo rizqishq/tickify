@@ -68,4 +68,31 @@ export class UserService {
 
         await UserRepository.updatePassword(userId, hash);
     }
+
+    static async createUser(data) {
+        const { password, ...rest } = data;
+        const salt = await bcrypt.genSalt(10);
+        const hash = await bcrypt.hash(password, salt);
+        return UserRepository.create({ ...rest, password_hash: hash });
+    }
+
+    static async adminUpdateUser(id, data) {
+        const user = await UserRepository.findById(id);
+        if (!user) throw new Error("User not found");
+
+        let updateData = { ...data };
+        if (data.password) {
+            const salt = await bcrypt.genSalt(10);
+            updateData.password_hash = await bcrypt.hash(data.password, salt);
+            delete updateData.password;
+        }
+
+        return UserRepository.update(id, updateData);
+    }
+
+    static async deleteUser(id) {
+        const user = await UserRepository.findById(id);
+        if (!user) throw new Error("User not found");
+        return UserRepository.delete(id);
+    }
 }

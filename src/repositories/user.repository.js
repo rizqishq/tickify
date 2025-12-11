@@ -29,10 +29,42 @@ export class UserRepository {
         return rows[0];
     }
 
-    static async findAll({ orderBy = 'created_at', orderDir = 'DESC' } = {}) {
-        const sql = `SELECT id, full_name, email, phone_number, role, created_at, profile_picture_url FROM users ORDER BY ${orderBy} ${orderDir}`;
-        const { rows } = await pool.query(sql);
-        return rows;
+    static async findAll({ orderBy = 'created_at', orderDir = 'DESC', limit, offset } = {}) {
+        let sql = `SELECT id, full_name, email, phone_number, role, created_at, profile_picture_url FROM users`;
+
+        // Count query
+        const countSql = `SELECT COUNT(*) as total FROM users`;
+        const { rows: countRows } = await pool.query(countSql);
+        const total = parseInt(countRows[0].total);
+
+        // Data query
+        sql += ` ORDER BY ${orderBy} ${orderDir}`;
+
+        const params = [];
+        let paramIndex = 1;
+
+        if (limit) {
+            sql += ` LIMIT $${paramIndex}`;
+            params.push(limit);
+            paramIndex++;
+        }
+
+        if (offset) {
+            sql += ` OFFSET $${paramIndex}`;
+            params.push(offset);
+        }
+
+        const { rows } = await pool.query(sql, params);
+
+        return {
+            data: rows,
+            pagination: {
+                total,
+                page: limit ? Math.floor(offset / limit) + 1 : 1,
+                limit: limit || total,
+                totalPages: limit ? Math.ceil(total / limit) : 1
+            }
+        };
     }
 
     static async updateProfilePicture(id, url) {

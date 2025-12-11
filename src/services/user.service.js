@@ -3,8 +3,9 @@ import { StatusCodes } from "http-status-codes";
 import bcrypt from "bcrypt";
 
 export class UserService {
-    static async listUsers() {
-        return UserRepository.findAll();
+    static async listUsers({ page = 1, limit = 10 } = {}) {
+        const offset = (page - 1) * limit;
+        return UserRepository.findAll({ limit, offset });
     }
 
     static async updateProfilePicture(userId, file) {

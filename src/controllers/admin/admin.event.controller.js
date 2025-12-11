@@ -15,7 +15,13 @@ export const adminCreateEvent = asyncWrapper(async (req, res) => {
 });
 
 export const adminListEvents = asyncWrapper(async (req, res) => {
-    const events = await EventService.listEvents({ orderBy: 'start_time', orderDir: 'DESC' });
+    const { page, limit } = req.query;
+    const events = await EventService.listEvents({
+        orderBy: 'start_time',
+        orderDir: 'DESC',
+        page: page ? parseInt(page) : 1,
+        limit: limit ? parseInt(limit) : 10
+    });
     res.json(events);
 });
 

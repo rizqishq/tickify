@@ -2,7 +2,11 @@ import { UserService } from "../../services/user.service.js";
 import { asyncWrapper } from "../../utils/asyncWrapper.js";
 
 export const adminListUsers = asyncWrapper(async (req, res) => {
-    const users = await UserService.listUsers();
+    const { page, limit } = req.query;
+    const users = await UserService.listUsers({
+        page: page ? parseInt(page) : 1,
+        limit: limit ? parseInt(limit) : 10
+    });
     res.json(users);
 });
 

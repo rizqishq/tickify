@@ -8,6 +8,7 @@ import eventRoutes from "./src/routes/event.routes.js";
 import ticketRoutes from "./src/routes/ticket.routes.js";
 import orderRoutes from "./src/routes/order.routes.js";
 import userRoutes from "./src/routes/user.routes.js";
+import webhookRoutes from "./src/routes/webhook.routes.js";
 import adminEventRoutes from "./src/routes/admin/admin.event.routes.js";
 import adminTicketRoutes from "./src/routes/admin/admin.ticket.routes.js";
 import adminUserRoutes from "./src/routes/admin/admin.user.routes.js";
@@ -38,6 +39,7 @@ app.use("/api/events", eventRoutes);
 app.use("/api/tickets", ticketRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/webhooks", webhookRoutes);
 
 // Admin Routes
 app.use("/api/admin/events", adminEventRoutes);

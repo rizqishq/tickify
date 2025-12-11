@@ -2,6 +2,8 @@ import { pool } from "../config/db.js";
 import { OrderRepository } from "../repositories/order.repository.js";
 import { TicketCategoryRepository } from "../repositories/ticket_category.repository.js";
 import { TicketRepository } from "../repositories/ticket.repository.js";
+import { UserRepository } from "../repositories/user.repository.js";
+import { PaymentService } from "./payment.service.js";
 import { generateTicketCode, generateQrDataUri } from "../utils/qr.js";
 import { StatusCodes } from "http-status-codes";
 
@@ -91,8 +93,27 @@ export class OrderService {
     }
 
     static async getUserOrders(userId, status) {
-        return OrderRepository.findByUserId(userId, status);
+        const orders = await OrderRepository.findByUserId(userId, status);
+
+        const updates = orders.map(async (order) => {
+            if (order.status === 'pending') {
+                try {
+                    const invoice = await PaymentService.getInvoice(order.id);
+                    if (invoice && (invoice.status === 'PAID' || invoice.status === 'SETTLED')) {
+                        await OrderRepository.updateStatus(order.id, 'paid');
+                        order.status = 'paid';
+                    }
+                } catch (e) {
+                    console.error(`Failed to sync order ${order.id}`, e);
+                }
+            }
+        });
+
+        await Promise.all(updates);
+
+        return orders;
     }
+
     static async payOrder(orderId, userId) {
         const order = await OrderRepository.findById(orderId);
         if (!order) {
@@ -111,11 +132,26 @@ export class OrderService {
             return order; // Already paid
         }
 
-        return OrderRepository.updateStatus(orderId, 'paid');
+        const user = await UserRepository.findById(userId);
+
+        const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+        const successRedirectUrl = `${frontendUrl}/my-tickets`; // Redirect to tickets after payment
+        const failureRedirectUrl = `${frontendUrl}/orders/${order.id}`;
+
+        const invoice = await PaymentService.createInvoice(
+            order.id,
+            order.total_price,
+            user.email,
+            `Payment for Order #${order.id}`,
+            successRedirectUrl,
+            failureRedirectUrl
+        );
+
+        return invoice;
     }
 
     static async getOrder(orderId, userId) {
-        const order = await OrderRepository.findById(orderId);
+        let order = await OrderRepository.findById(orderId);
         if (!order) {
             const error = new Error("Order not found");
             error.statusCode = StatusCodes.NOT_FOUND;
@@ -126,6 +162,22 @@ export class OrderService {
             const error = new Error("Unauthorized access to order");
             error.statusCode = StatusCodes.FORBIDDEN;
             throw error;
+        }
+
+        // Lazy Sync: If pending, check Xendit
+        if (order.status === 'pending') {
+            try {
+                const invoice = await PaymentService.getInvoice(orderId);
+                if (invoice && (invoice.status === 'PAID' || invoice.status === 'SETTLED')) {
+                    // Update DB
+                    await OrderRepository.updateStatus(orderId, 'paid');
+                    // Update local object
+                    order.status = 'paid';
+                }
+            } catch (err) {
+                console.error("Failed to sync payment status:", err);
+                // Ignore error, just return pending
+            }
         }
 
         return order;

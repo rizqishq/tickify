@@ -56,7 +56,9 @@ app.use(errorHandler);
 app.get("/api/health", (req, res) => res.json({ ok: true, message: "Ticketing backend" }));
 
 // Swagger Docs
-app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs, {
+    customCssUrl: "https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/5.0.0/swagger-ui.min.css"
+}));
 
 const PORT = 5000;
 app.listen(PORT, () => {

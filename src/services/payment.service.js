@@ -31,10 +31,6 @@ export class PaymentService {
 
             console.log("Xendit Invoice Response:", JSON.stringify(resp, null, 2));
 
-            // Check if response is directly the object or has properties like .body or .data
-            // The Xendit Node SDK v7 usually returns the object directly, using CamelCase keys.
-            // But let's handle if it returns snake_case (raw API) or camelCase.
-
             const invoiceUrl = resp.invoiceUrl || resp.invoice_url;
 
             return {

@@ -12,6 +12,7 @@ import webhookRoutes from "./src/routes/webhook.routes.js";
 import adminEventRoutes from "./src/routes/admin/admin.event.routes.js";
 import adminTicketRoutes from "./src/routes/admin/admin.ticket.routes.js";
 import adminUserRoutes from "./src/routes/admin/admin.user.routes.js";
+import { initCron } from "./src/services/cron.service.js";
 
 import helmet from "helmet";
 import morgan from "morgan";
@@ -45,6 +46,8 @@ app.use("/api/webhooks", webhookRoutes);
 app.use("/api/admin/events", adminEventRoutes);
 app.use("/api/admin/tickets", adminTicketRoutes);
 app.use("/api/admin/users", adminUserRoutes);
+
+initCron();
 
 app.use(errorHandler);
 

@@ -101,4 +101,14 @@ export class OrderRepository {
         const { rows } = await pool.query(sql, [id]);
         return rows[0];
     }
+
+    static async findExpiredPendingOrders(cutoffDate) {
+        const sql = `
+            SELECT * FROM orders 
+            WHERE status = 'pending' 
+            AND created_at < $1
+        `;
+        const { rows } = await pool.query(sql, [cutoffDate]);
+        return rows;
+    }
 }

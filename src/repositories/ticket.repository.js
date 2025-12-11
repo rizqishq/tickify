@@ -25,7 +25,7 @@ export class TicketRepository {
 
     static async findByUserId(userId, limit, offset) {
         let sql = `
-            SELECT t.*, tc.name as category_name, e.title as event_title, e.start_time, e.venue, e.id as event_id
+            SELECT t.*, tc.name as category_name, e.title as event_title, e.start_time, e.venue, e.id as event_id, o.id as order_id
             FROM tickets t
             JOIN ticket_categories tc ON t.category_id = tc.id
             JOIN events e ON tc.event_id = e.id

@@ -4,6 +4,7 @@ import { TicketCategoryRepository } from "../repositories/ticket_category.reposi
 import { TicketRepository } from "../repositories/ticket.repository.js";
 import { UserRepository } from "../repositories/user.repository.js";
 import { PaymentService } from "./payment.service.js";
+import { EmailService } from "./email.service.js";
 import { generateTicketCode, generateQrDataUri } from "../utils/qr.js";
 import { StatusCodes } from "http-status-codes";
 
@@ -104,6 +105,15 @@ export class OrderService {
                     if (invoice && (invoice.status === 'PAID' || invoice.status === 'SETTLED')) {
                         await OrderRepository.updateStatus(order.id, 'paid');
                         order.status = 'paid';
+
+                        // Send Email
+                        // We need full order details (with items) for email. 
+                        // The current 'order' object from 'findByUserId' has items as JSON, which fits EmailService expectation roughly,
+                        // but let's double check. 'findByUserId' returns items as array of objects.
+                        // OrderRepository.findById returns similar structure.
+                        // EmailService uses order.items directly.
+                        await EmailService.sendTicketEmail(order).catch(e => console.error("Failed to send email", e));
+
                     } else if (invoice && invoice.status === 'EXPIRED') {
                         await OrderRepository.updateStatus(order.id, 'cancelled');
                         order.status = 'cancelled';
@@ -186,6 +196,10 @@ export class OrderService {
                     await OrderRepository.updateStatus(orderId, 'paid');
                     // Update local object
                     order.status = 'paid';
+
+                    // Send Email
+                    // 'getOrder' uses 'findById' which returns full object with items.
+                    await EmailService.sendTicketEmail(order).catch(e => console.error("Failed to send email", e));
                 }
             } catch (err) {
                 console.error("Failed to sync payment status:", err);
@@ -231,9 +245,44 @@ export class OrderService {
             const cancelledOrder = await OrderRepository.updateStatus(orderId, 'cancelled', client);
 
             await client.query("COMMIT");
+
+            // Send Email
+            EmailService.sendCancellationEmail(order).catch(e => console.error("Failed to send cancel email", e));
+
             return cancelledOrder;
         } catch (error) {
             await client.query("ROLLBACK");
+            throw error;
+        } finally {
+            client.release();
+        }
+    }
+
+    static async systemCancelOrder(orderId) {
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            const order = await OrderRepository.findById(orderId);
+            if (!order) throw new Error("Order not found");
+            if (order.status !== 'pending') throw new Error("Only pending orders can be cancelled");
+
+            // Restore Quota
+            for (const item of order.items) {
+                await TicketCategoryRepository.updateQuota(item.category_id, -item.quantity, client);
+            }
+
+            // Update Status
+            const updatedOrder = await OrderRepository.updateStatus(orderId, 'cancelled', client);
+
+            await client.query('COMMIT');
+
+            // Send Email (async, don't block)
+            EmailService.sendCancellationEmail(order).catch(e => console.error("Failed to send cancel email", e));
+
+            return updatedOrder;
+        } catch (error) {
+            await client.query('ROLLBACK');
             throw error;
         } finally {
             client.release();

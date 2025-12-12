@@ -1,155 +1,117 @@
-### Tickify
+# Tickify - Backend Service
 
-## Setup
+Tickify adalah platform manajemen tiket acara yang komprehensif, dirancang untuk memfasilitasi pembuatan acara, penjualan tiket, dan manajemen pesanan dengan mudah dan efisien. Repositori ini berisi kode sumber untuk layanan backend yang mendukung aplikasi Tickify.
 
-### 1. Install Dependencies
+## Dokumentasi API
 
-```bash
-npm install
-```
+Dokumentasi lengkap mengenai endpoint API tersedia melalui tautan berikut:
 
-### 2. Set Up Database
+[Dokumentasi Postman](https://documenter.getpostman.com/view/50574177/2sB3dSQ8mV)
 
--   Create a PostgreSQL database
--   Run the migration:
+## Daftar Isi
 
-```bash
-psql -U your_username -d your_database -f migrations/001_init.sql
-```
+1.  [Tentang Proyek](#tentang-proyek)
+2.  [Fitur Utama](#fitur-utama)
+3.  [Teknologi yang Digunakan](#teknologi-yang-digunakan)
+4.  [Prasyarat](#prasyarat)
+5.  [Instalasi](#instalasi)
+6.  [Konfigurasi](#konfigurasi)
+7.  [Menjalankan Aplikasi](#menjalankan-aplikasi)
+8.  [Struktur Proyek](#struktur-proyek)
 
-### 3. Configure Environment Variables
+## Tentang Proyek
 
--   Copy `.env.example` to `.env`:
+Tickify dibangun dengan arsitektur yang scalable dan aman, menyediakan RESTful API untuk interaksi antara klien (frontend web/mobile) dan database. Sistem ini menangani otentikasi pengguna, manajemen acara, pemesanan tiket, dan integrasi pembayaran.
+
+## Fitur Utama
+
+-   **Otentikasi & Otorisasi**: Registrasi, Login, dan manajemen profil pengguna menggunakan JWT (JSON Web Token).
+-   **Manajemen Acara**: Pembuatan, pembaruan, dan penghapusan acara oleh penyelenggara atau admin.
+-   **Sistem Tiket**: Manajemen stok tiket, kategori tiket, dan validasi.
+-   **Pemesanan & Pembayaran**: Alur pemesanan tiket lengkap dengan integrasi gateway pembayaran (Xendit).
+-   **Dashboard Admin**: Endpoint khusus untuk administrator guna mengelola pengguna, acara, dan tiket secara global.
+-   **Upload Media**: Integrasi dengan Cloudinary untuk penyimpanan gambar banner acara dan profil pengguna.
+
+## Teknologi yang Digunakan
+
+Proyek ini dikembangkan menggunakan teknologi berikut:
+
+-   **Runtime**: Node.js
+-   **Framework**: Express.js
+-   **Database**: PostgreSQL
+-   **Driver Database**: node-postgres (pg)
+-   **Otentikasi**: JSON Web Token (JWT) & Bcrypt
+-   **Penyimpanan Media**: Cloudinary
+-   **Gerbang Pembayaran**: Xendit
+
+## Prasyarat
+
+Sebelum memulai, pastikan perangkat Anda telah terinstal:
+
+-   Node.js (versi 16 atau lebih baru)
+-   npm (Node Package Manager)
+-   PostgreSQL Server
+
+## Instalasi
+
+Ikuti langkah-langkah berikut untuk menginstal dan menjalankan proyek di lingkungan lokal Anda:
+
+1.  **Clone Repositori**
+
+    Salin kode sumber proyek ke direktori lokal Anda.
+
+2.  **Instal Dependensi**
+
+    Masuk ke direktori proyek dan jalankan perintah berikut untuk menginstal semua paket yang diperlukan:
+
+    ```bash
+    npm install
+    ```
+
+3.  **Persiapkan Database**
+
+    -   Buat database baru di PostgreSQL.
+    -   Jalankan skrip migrasi untuk membuat tabel yang diperlukan:
+
+    ```bash
+    psql -U username_anda -d nama_database -f migrations/001_init.sql
+    ```
+
+    *Catatan: Sesuaikan `username_anda` dan `nama_database` dengan konfigurasi PostgreSQL Anda.*
+
+## Konfigurasi
+
+Salin file contoh konfigurasi `.env.example` menjadi `.env` dan sesuaikan nilainya dengan lingkungan lokal Anda.
 
 ```bash
 cp .env.example .env
 ```
 
--   Update `.env` with your actual values:
-    -   `DATABASE_URL`: Your PostgreSQL connection string
-    -   `JWT_SECRET`: A strong secret key for JWT signing
-    -   `JWT_EXPIRES_IN`: Token expiration (default: 7d)
-    -   `SALT_ROUNDS`: Bcrypt salt rounds (default: 10)
-    -   `PORT`: Server port (default: 3000)
+Pastikan variabel berikut diisi dengan benar di dalam file `.env`:
 
-## Testing the Application
+-   `PORT`: Port server (default: 5000)
+-   `DATABASE_URL`: URL koneksi PostgreSQL (contoh: `postgres://user:pass@localhost:5432/dbname`)
+-   `JWT_SECRET`: Kunci rahasia untuk enkripsi token
+-   `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`: Kredensial Cloudinary
+-   `XENDIT_SECRET_KEY`: Kunci rahasia API Xendit
 
-### Start the Server
+## Menjalankan Aplikasi
+
+Untuk menjalankan server dalam mode pengembangan (dengan hot-reload):
 
 ```bash
 npm run dev
 ```
 
-The server should start on port 3000 (or your configured PORT).
+Server akan berjalan pada URL default `http://localhost:5000` (atau sesuai port yang Anda konfigurasi).
 
-### Test Endpoints
+## Struktur Proyek
 
-#### 1. Register a New User
+Berikut adalah gambaran umum struktur direktori proyek:
 
-```bash
-curl -X POST http://localhost:3000/api/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{
-    "full_name": "John Doe",
-    "email": "john@example.com",
-    "phone_number": "1234567890",
-    "password": "password123",
-    "confirm_password": "password123"
-  }'
-```
-
-**Expected Response:**
-
-```json
-{
-	"user": {
-		"id": "...",
-		"full_name": "John Doe",
-		"email": "john@example.com",
-		"phone_number": "1234567890",
-		"role": "user",
-		"created_at": "..."
-	},
-	"token": "jwt_token_here"
-}
-```
-
-#### 2. Login with Email
-
-```bash
-curl -X POST http://localhost:3000/api/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "john@example.com",
-    "password": "password123"
-  }'
-```
-
-**Expected Response:**
-
-```json
-{
-	"user": {
-		"id": "...",
-		"full_name": "John Doe",
-		"email": "john@example.com",
-		"phone_number": "1234567890",
-		"role": "user"
-	},
-	"token": "jwt_token_here"
-}
-```
-### User Endpoints
-
-#### 1. Get Current User Profile
-Retrieves the profile of the currently logged-in user.
-
-```bash
-curl -X GET http://localhost:3000/api/users/me \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-#### 2. Update Profile Picture
-Uploads a new profile picture. Expects a file field named `file`.
-
-```bash
-curl -X PATCH http://localhost:3000/api/users/profile-picture \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: multipart/form-data" \
-  -F "file=@/path/to/image.jpg"
-```
-
-#### 3. Remove Profile Picture
-Deletes the current user's profile picture.
-
-```bash
-curl -X DELETE http://localhost:3000/api/users/profile-picture \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN"
-```
-
-#### 4. Update Profile Details
-Updates user information like name or phone number.
-
-```bash
-curl -X PATCH http://localhost:3000/api/users/profile \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "full_name": "New Name",
-    "phone_number": "0987654321"
-  }'
-```
-
-#### 5. Change Password
-Updates the user's password.
-
-```bash
-curl -X PATCH http://localhost:3000/api/users/change-password \
-  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "old_password": "oldPassword123",
-    "new_password": "newPassword123",
-    "confirm_new_password": "newPassword123"
-  }'
-```
+-   `src/config`: Konfigurasi database dan layanan pihak ketiga
+-   `src/controllers`: Logika bisnis utama untuk setiap endpoint
+-   `src/middlewares`: Middleware untuk otentikasi, upload file, dan penanganan error
+-   `src/routes`: Definisi rute API
+-   `src/services`: Logika tambahan atau layanan eksternal
+-   `migrations`: Skrip SQL untuk skema database

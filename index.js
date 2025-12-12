@@ -25,11 +25,7 @@ app.use(helmet());
 app.use(morgan("dev"));
 app.use(express.json());
 app.use(cors({
-    origin: [
-        'https://tickify-app.vercel.app',
-        'http://localhost:3000',
-        'http://localhost:5173'
-    ],
+    origin: 'https://tickify-app.vercel.app',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
 }));

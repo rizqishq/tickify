@@ -8,6 +8,12 @@ Dokumentasi lengkap mengenai endpoint API tersedia melalui tautan berikut:
 
 [Dokumentasi Postman](https://documenter.getpostman.com/view/50574177/2sB3dSQ8mV)
 
+## Demo Aplikasi
+
+Aplikasi web dapat diakses secara langsung melalui tautan berikut:
+
+[Tickify Live App](https://tickify-app.vercel.app)
+
 ## Daftar Isi
 
 1.  [Tentang Proyek](#tentang-proyek)
